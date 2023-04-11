@@ -15,6 +15,7 @@
 require "faraday"
 require "googleauth/signet"
 require "memoist"
+require "logger"
 
 module Google
   # Module Auth provides classes that provide Google-specific authorization
@@ -76,9 +77,14 @@ module Google
             req.options.timeout = 1.0
             req.options.open_timeout = 0.1
           end
-          return false unless resp.status == 200
+          unless resp.status == 200
+            log = Logger.new(STDOUT)
+            log.error("GCE metadata host(#{metadata_host}) error response: status=#{resp.status} body=#{resp.body}")
+            return false
+          end
           resp.headers["Metadata-Flavor"] == "Google"
-        rescue Faraday::TimeoutError, Faraday::ConnectionFailed
+        rescue Faraday::TimeoutError, Faraday::ConnectionFailed => e
+          log.error("GCE metadata host(#{metadata_host}) connection timeout or failed: #{e}")
           false
         end
 
