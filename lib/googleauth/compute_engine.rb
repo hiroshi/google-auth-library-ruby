@@ -84,6 +84,7 @@ module Google
           end
           resp.headers["Metadata-Flavor"] == "Google"
         rescue Faraday::TimeoutError, Faraday::ConnectionFailed => e
+          log = Logger.new(STDOUT)
           log.error("GCE metadata host(#{metadata_host}) connection timeout or failed: #{e}")
           false
         end
